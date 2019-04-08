@@ -6,28 +6,45 @@ using UnityEngine;
 public class PlayerControls : MonoBehaviour {
 
     Rigidbody2D myRigidBody;
+    BoxCollider2D myCollider;
+
     float rotationGoal;
     float defaultGravity;
-    float totalDistance;
+    float totalDistance = 0f;
+    bool didICollide;
+
+    [SerializeField] float health = 100;
     [SerializeField] float gravityScale = 1f;
 
 	// Use this for initialization
 	void Start () {
         myRigidBody = GetComponent<Rigidbody2D>();
+        myCollider = GetComponent<BoxCollider2D>();
         defaultGravity = -1 * Physics2D.gravity.y;
+        didICollide = myCollider.IsTouchingLayers(LayerMask.GetMask("Ground"));
 	}
 	
 	// Update is called once per frame
 	void Update () {
         GravityControl();
-
+        if(health <= 0)
+        {
+            Debug.Log("YOU DIE");
+            Destroy(gameObject);
+        }
     }
 
-
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if(collision.gameObject.GetComponent<Enemy>())
+        {
+            health -= 100;
+        }
+    }
 
     private void GravityControl()
     {
-
+        bool isCollidingWithGround = myCollider.IsTouchingLayers(LayerMask.GetMask("Ground"));
         bool direcitonChanged = false;
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
@@ -61,19 +78,44 @@ public class PlayerControls : MonoBehaviour {
             direcitonChanged = true;
         }
 
-        RaycastHit2D closestObsticle = Physics2D.Raycast(transform.position, myRigidBody.velocity.normalized, 10000f, LayerMask.GetMask("Ground"));
+        // Raycast in the direction of gravity rather than velocity to avoid
+        //  the need to wait for velocity to settle in the correct direction
+        RaycastHit2D closestObsticle = Physics2D.Raycast(transform.position,
+            Physics2D.gravity.normalized,
+            10000f,
+            LayerMask.GetMask("Ground"));
+
+        Debug.DrawRay(transform.position, Physics2D.gravity.normalized);
+
         float distanceToImpact = closestObsticle.distance;
         
         if (direcitonChanged)
         {
             totalDistance = distanceToImpact;
-            direcitonChanged = false;
         }
 
-        Debug.Log(Time.deltaTime);
+        // TODO: Rotating when you are in a corner
+        // Somehow ensure that an object completely rotates before stopping
+        //Debug.Log("Total Distance " + totalDistance);
 
 
-        transform.rotation = Quaternion.SlerpUnclamped(transform.rotation, Quaternion.Euler(0, 0, rotationGoal), totalDistance/myRigidBody.velocity.magnitude);
+
+        float rotationFactor = isCollidingWithGround != didICollide && isCollidingWithGround ? 1 : 1 - (distanceToImpact / totalDistance);
+
+        
+        transform.rotation = Quaternion.Slerp(transform.rotation,
+            Quaternion.Euler(0f, 0f, rotationGoal),
+            rotationFactor);
+               
+
+        //if (isCollidingWithGround != didICollide && isCollidingWithGround && transform.rotation.z != rotationGoal)
+        //{
+        //    transform.position += transform.up.normalized * 0.1f;
+        //}
+
+        didICollide = isCollidingWithGround;
+
+
     }
 
 }
