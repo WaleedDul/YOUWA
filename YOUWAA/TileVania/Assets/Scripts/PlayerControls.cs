@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 public class PlayerControls : MonoBehaviour {
@@ -12,66 +13,60 @@ public class PlayerControls : MonoBehaviour {
     float defaultGravity;
     float totalDistance = 0f;
     bool didICollide;
+    public float damageDone = 25f;
 
     [SerializeField] float health = 100;
     [SerializeField] float gravityScale = 1f;
 
-	// Use this for initialization
-	void Start () {
+    public Slider healthSlider;
+
+    // Use this for initialization
+    void Start() {
         myRigidBody = GetComponent<Rigidbody2D>();
         myCollider = GetComponent<BoxCollider2D>();
         defaultGravity = -1 * Physics2D.gravity.y;
         didICollide = myCollider.IsTouchingLayers(LayerMask.GetMask("Ground"));
-	}
-	
-	// Update is called once per frame
-	void Update () {
+    }
+
+    // Update is called once per frame
+    void Update() {
         GravityControl();
-        if(health <= 0)
-        {
+        healthSlider.value = health;
+        if (health <= 0) {
             Debug.Log("YOU DIE");
             Destroy(gameObject);
         }
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if(collision.gameObject.GetComponent<Enemy>())
-        {
-            health -= 100;
+    void OnCollisionEnter2D(Collision2D collision) {
+
+        Enemy enemy = collision.gameObject.GetComponent<Enemy>();
+
+        if (enemy) {
+            // TODO: Only take damage if you are moving towards the target
+            health -= enemy.damageDone;
         }
     }
 
-    private void GravityControl()
-    {
+    private void GravityControl() {
         bool isCollidingWithGround = myCollider.IsTouchingLayers(LayerMask.GetMask("Ground"));
         bool direcitonChanged = false;
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
+        if (Input.GetKeyDown(KeyCode.RightArrow)) {
             myRigidBody.gravityScale = gravityScale;
             Physics2D.gravity = new Vector2(defaultGravity, 0f);
             rotationGoal = 90;
             direcitonChanged = true;
-        }
-
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
+        } else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
             myRigidBody.gravityScale = gravityScale;
             Physics2D.gravity = new Vector2(-defaultGravity, 0f);
             rotationGoal = 270;
             direcitonChanged = true;
-        }
-
-        else if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
+        } else if (Input.GetKeyDown(KeyCode.UpArrow)) {
             myRigidBody.gravityScale = gravityScale;
             Physics2D.gravity = new Vector2(0f, defaultGravity);
             rotationGoal = 180;
             direcitonChanged = true;
-        }
-
-        else if (Input.GetKeyDown(KeyCode.DownArrow))
-        {
+        } else if (Input.GetKeyDown(KeyCode.DownArrow)) {
             myRigidBody.gravityScale = gravityScale;
             Physics2D.gravity = new Vector2(0f, -defaultGravity);
             rotationGoal = 0;
@@ -88,25 +83,20 @@ public class PlayerControls : MonoBehaviour {
         Debug.DrawRay(transform.position, Physics2D.gravity.normalized);
 
         float distanceToImpact = closestObsticle.distance;
-        
-        if (direcitonChanged)
-        {
+
+        if (direcitonChanged) {
             totalDistance = distanceToImpact;
         }
 
         // TODO: Rotating when you are in a corner
         // Somehow ensure that an object completely rotates before stopping
-        //Debug.Log("Total Distance " + totalDistance);
-
-
-
         float rotationFactor = isCollidingWithGround != didICollide && isCollidingWithGround ? 1 : 1 - (distanceToImpact / totalDistance);
 
-        
+
         transform.rotation = Quaternion.Slerp(transform.rotation,
             Quaternion.Euler(0f, 0f, rotationGoal),
             rotationFactor);
-               
+
 
         //if (isCollidingWithGround != didICollide && isCollidingWithGround && transform.rotation.z != rotationGoal)
         //{
