@@ -15,6 +15,7 @@ public class PlayerControls : MonoBehaviour {
     public bool directionChanged = false;
     public Vector2 gravity;
     GameObject game;
+    SpriteRenderer m_sprite;
 
     float health = 100;
 
@@ -27,6 +28,8 @@ public class PlayerControls : MonoBehaviour {
 
         game = GameObject.Find("GameManager");
         game.GetComponent<GravityManager>().AddEntity(this);
+
+        m_sprite = GetComponent<SpriteRenderer>();
     }
 
     void Update() {
@@ -59,7 +62,6 @@ public class PlayerControls : MonoBehaviour {
     }
 
     private void SpriteRotation() {
-        directionChanged = false;
         bool isCollidingWithGround = m_colldier.IsTouchingLayers(LayerMask.GetMask("Ground"));
 
         // Raycast in the direction of gravity rather than velocity to avoid
@@ -69,7 +71,7 @@ public class PlayerControls : MonoBehaviour {
             10000f,
             LayerMask.GetMask("Ground"));
 
-        Debug.DrawRay(transform.position, gravity.normalized);
+        Debug.DrawRay(transform.position, gravity.normalized * 10000f);
 
         float distanceToImpact = closestObsticle.distance;
 
@@ -84,6 +86,9 @@ public class PlayerControls : MonoBehaviour {
         transform.rotation = Quaternion.Slerp(transform.rotation,
             Quaternion.Euler(0f, 0f, rotationGoal),
             rotationFactor);
+        if (directionChanged) {
+            Debug.Log("directionChanged: " + directionChanged);
+        }
 
 
         //if (isCollidingWithGround != didICollide && isCollidingWithGround && transform.rotation.z != rotationGoal)
@@ -92,6 +97,7 @@ public class PlayerControls : MonoBehaviour {
         //}
 
         didICollide = isCollidingWithGround;
+        directionChanged = false;
     }
 
 }
