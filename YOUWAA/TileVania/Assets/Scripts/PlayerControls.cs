@@ -5,8 +5,8 @@ using UnityEngine.UI;
 
 public class PlayerControls : MonoBehaviour {
 
-    Rigidbody2D myRigidBody;
-    BoxCollider2D myCollider;
+    Rigidbody2D m_rb;
+    BoxCollider2D m_colldier;
 
     public float rotationGoal;
     float totalDistance = 0f;
@@ -16,21 +16,19 @@ public class PlayerControls : MonoBehaviour {
     public Vector2 gravity;
     GameObject game;
 
-    [SerializeField] float health = 100;
+    float health = 100;
 
     //public Slider healthSlider;
 
-    // Use this for initialization
     void Start() {
-        myRigidBody = GetComponent<Rigidbody2D>();
-        myCollider = GetComponent<BoxCollider2D>();
-        didICollide = myCollider.IsTouchingLayers(LayerMask.GetMask("Ground"));
+        m_rb = GetComponent<Rigidbody2D>();
+        m_colldier = GetComponent<BoxCollider2D>();
+        didICollide = m_colldier.IsTouchingLayers(LayerMask.GetMask("Ground"));
 
         game = GameObject.Find("GameManager");
         game.GetComponent<GravityManager>().AddEntity(this);
     }
 
-    // Update is called once per frame
     void Update() {
         SpriteRotation();
         UpdateHealth();
@@ -46,6 +44,10 @@ public class PlayerControls : MonoBehaviour {
         }
     }
 
+    private void OnDestroy() {
+        game.GetComponent<GravityManager>().RemoveEntity(this);
+    }
+
     private void UpdateHealth() {
         //if (healthSlider != null) {
             //healthSlider.value = health;
@@ -57,8 +59,8 @@ public class PlayerControls : MonoBehaviour {
     }
 
     private void SpriteRotation() {
-        directionChanged = false; // TODO: Update from GravityManager
-        bool isCollidingWithGround = myCollider.IsTouchingLayers(LayerMask.GetMask("Ground"));
+        directionChanged = false;
+        bool isCollidingWithGround = m_colldier.IsTouchingLayers(LayerMask.GetMask("Ground"));
 
         // Raycast in the direction of gravity rather than velocity to avoid
         //  the need to wait for velocity to settle in the correct direction

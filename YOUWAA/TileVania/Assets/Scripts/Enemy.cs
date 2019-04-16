@@ -7,12 +7,10 @@ public class Enemy : MonoBehaviour {
     public float damageDone = 10f;
     private float health = 50f;
 
-	// Use this for initialization
 	void Start () {
 		
 	}
 	
-	// Update is called once per frame
 	void Update () {
 		if (health <= 0) {
             Debug.Log("Enemy Dead");
