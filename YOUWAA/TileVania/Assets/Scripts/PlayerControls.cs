@@ -86,18 +86,13 @@ public class PlayerControls : MonoBehaviour {
         transform.rotation = Quaternion.Slerp(transform.rotation,
             Quaternion.Euler(0f, 0f, rotationGoal),
             rotationFactor);
-        if (directionChanged) {
-            Debug.Log("directionChanged: " + directionChanged);
-        }
-
-
+            
         //if (isCollidingWithGround != didICollide && isCollidingWithGround && transform.rotation.z != rotationGoal)
         //{
         //    transform.position += transform.up.normalized * 0.1f;
         //}
 
         didICollide = isCollidingWithGround;
-        directionChanged = false;
     }
 
 }
